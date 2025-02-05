@@ -86,7 +86,6 @@ The `Controller` class manages the interaction between the `Provider` and `Parse
 - **returns**: formatted search results.
 
 ---
-
 ## **4. Unit Tests**
 
 The project includes PHPUnit tests for `Provider`, `Parser`, and `Controller` classes.
@@ -96,3 +95,22 @@ Run the following command to execute unit tests:
 
 ```sh
 vendor/bin/phpunit tests/
+```
+---
+## **5. Installation & Setup**
+
+### **Clone the Repository**
+```sh
+git clone https://github.com/adnasal/notus-php-api-task.git
+cd notus-php-api-task
+```
+
+### **Install Dependencies**
+```sh
+composer install
+```
+
+### **Run the Application**
+```sh
+php -S localhost:8000 -t public
+```
