@@ -22,7 +22,7 @@ class Parser
         return [
             'data' => $parsedProducts,
             'meta' => [
-                'total_pages' => $products['totalPages'],
+                'total_pages' => $products['totalPages'] ?? 0,
                 'page' => $page,
                 'per_page' => $perPage
             ]
@@ -40,9 +40,10 @@ class Parser
         return [
             'id' => $product['id'],
             'title' => $product['title'],
-            'description' => $product['description'],
-            'category' => $product['category'],
-            'tags' => implode(', ', $product['tags']),
+            'description' => $product['description'] ?? 'No description available.',
+            'category' => $product['category'] ?? 'Uncategorized',
+            'tags' => isset($product['tags']) && is_array($product['tags']) ? implode(', ', $product['tags']) : 'No tags available',
+            'short_description' => substr($product['description'] ?? 'No description available.', 0, 30),
             'price' => $this->formatPrice($product['price']),
             'stock' => $this->getStockStatus($product['stock']),
             'thumbnail' => $product['thumbnail']
@@ -58,7 +59,7 @@ class Parser
      */
     private function formatPrice(float $price, string $currencySymbol = '€'): string
     {
-        return $currencySymbol . number_format($price, 2, '.', ',');
+        return $currencySymbol . number_format($price, 2);
     }
 
     /**
@@ -89,8 +90,8 @@ class Parser
         return [
             'id' => $product['id'],
             'title' => $product['title'],
-            'description' => $product['description'],
-            'short_description' => substr($product['description'], 0, 30), // shortened description (max 30 chars)
+            'description' => $product['description'] ?? 'No description available.',
+            'short_description' => substr($product['description'] ?? 'No description available.', 0, 30),
             'price' => $this->formatPrice($product['price']),
             'stock' => $this->getStockStatus($product['stock']),
             'thumbnail' => $product['thumbnail']
