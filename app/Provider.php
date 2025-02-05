@@ -46,12 +46,29 @@ class Provider
      */
     public function getProducts(int $limit = 10, int $skip = 0, string $sortBy = "id", string $order = "asc"): array
     {
-        return $this->fetchFromApi("", [
+        // fetch the data from the API
+        $response = $this->fetchFromApi("", [
             'limit' => $limit,
             'skip' => $skip,
             'sortBy' => $sortBy,
             'order' => $order
         ]);
+
+        // ensure the response contains 'products'
+        if (!isset($response['products']) || !is_array($response['products'])) {
+            return [];
+        }
+
+        // calculate total pages based on the total number of products and the limit
+        $totalProducts = count($response['products']);
+        $totalPages = ($totalProducts > 0) ? ceil($totalProducts / $limit) : 0;
+
+        // return the structured response
+        return [
+            'products' => $response['products'],
+            'totalPages' => $totalPages,
+            'total' => $totalProducts
+        ];
     }
 
     /**
@@ -62,7 +79,7 @@ class Provider
      */
     public function getProductById(int $id): array
     {
-        return $this->fetchFromApi("/{$id}");
+        return $this->fetchFromApi("/$id");
     }
 
     /**

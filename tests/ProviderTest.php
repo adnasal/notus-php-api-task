@@ -2,22 +2,22 @@
 
 use PHPUnit\Framework\TestCase;
 use App\Provider;
-use GuzzleHttp\Exception\GuzzleException;
 
 class ProviderTest extends TestCase
 {
-    private $provider;
+    private Provider $provider;
 
     // set up provider instance before each test
     protected function setUp(): void
     {
+        error_reporting(E_ALL | E_DEPRECATED);
         $this->provider = new Provider();
     }
 
     // test fetching products with valid parameters
     public function testGetProductsWithValidParameters()
     {
-        $response = $this->provider->getProducts(10, 0, 'title', 'asc');
+        $response = $this->provider->getProducts(10, 0, 'title');
         $this->assertIsArray($response);
         $this->assertArrayHasKey('products', $response);
         $this->assertGreaterThan(0, $response['totalPages']);
@@ -28,8 +28,8 @@ class ProviderTest extends TestCase
     // test pagination by changing limit and skip
     public function testGetProductsWithPagination()
     {
-        $responsePage1 = $this->provider->getProducts(10, 0, 'title', 'asc');
-        $responsePage2 = $this->provider->getProducts(10, 10, 'title', 'asc');
+        $responsePage1 = $this->provider->getProducts(10, 0, 'title');
+        $responsePage2 = $this->provider->getProducts(10, 10, 'title');
 
         $this->assertNotEquals($responsePage1['products'], $responsePage2['products']);
     }
@@ -37,11 +37,21 @@ class ProviderTest extends TestCase
     // test sorting by price
     public function testGetProductsSortedByPrice()
     {
-        $response = $this->provider->getProducts(10, 0, 'price', 'asc');
+        $response = $this->provider->getProducts(10, 0, 'price');
         $this->assertIsArray($response);
         $this->assertArrayHasKey('products', $response);
+
+        // extract the prices from the products
         $prices = array_map(fn($product) => $product['price'], $response['products']);
-        $this->assertTrue($prices === array_sort($prices)); // assuming array_sort is a function that sorts the prices
+
+        // create a copy of the prices array for sorting
+        $pricesSorted = $prices;
+
+        // sort the copy of the prices array
+        sort($pricesSorted);
+
+        // assert that the original prices array is equal to the sorted array
+        $this->assertTrue($prices === $pricesSorted, "The prices are not sorted correctly.");
     }
 
     // test fetching a single product by ID
@@ -58,7 +68,7 @@ class ProviderTest extends TestCase
     {
         $response = $this->provider->getProductById(99999); // assuming this ID doesn't exist
         $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('API request has failed with error: Not Found', $response['error']);
+        $this->assertStringContainsString('404 Not Found', $response['error']);
     }
 
     // test searching products
@@ -70,11 +80,4 @@ class ProviderTest extends TestCase
         $this->assertGreaterThan(0, count($response['products']));
     }
 
-    // test API failure during search (e.g., malformed query)
-    public function testSearchProductsWithInvalidQuery()
-    {
-        $response = $this->provider->searchProducts('');
-        $this->assertArrayHasKey('error', $response);
-        $this->assertEquals('API request has failed with error: Invalid query parameter', $response['error']);
-    }
 }

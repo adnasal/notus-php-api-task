@@ -7,15 +7,28 @@ use App\Parser;
 
 class ControllerTest extends TestCase
 {
-    private $controller;
-    private $providerMock;
-    private $parserMock;
+    private Controller $controller;
+    private Provider $providerMock;
+    private Parser $parserMock;
 
     // set up controller instance before each test
     protected function setUp(): void
     {
-        $this->providerMock = $this->createMock(Provider::class);
-        $this->parserMock = $this->createMock(Parser::class);
+        error_reporting(E_ALL | E_DEPRECATED);
+
+        // create mocks and handle any errors that may occur
+        try {
+            $this->providerMock = $this->createMock(Provider::class);
+        } catch (\PHPUnit\Framework\MockObject\Exception $e) {
+            $this->fail("Failed to create mock for Provider: " . $e->getMessage());
+        }
+
+        try {
+            $this->parserMock = $this->createMock(Parser::class);
+        } catch (\PHPUnit\Framework\MockObject\Exception $e) {
+            $this->fail("Failed to create mock for Parser: " . $e->getMessage());
+        }
+
         $this->controller = new Controller($this->providerMock, $this->parserMock);
     }
 
@@ -23,7 +36,13 @@ class ControllerTest extends TestCase
     public function testGetProducts()
     {
         $products = [
-            'products' => [['id' => 1, 'title' => 'Product 1', 'price' => 10.99]],
+            'products' => array_map(function ($i) {
+                return [
+                    'id' => $i,
+                    'title' => "Product $i",
+                    'price' => 10.99
+                ];
+            }, range(1, 10)), // Mock 10 products
             'totalPages' => 1
         ];
 
@@ -34,11 +53,14 @@ class ControllerTest extends TestCase
         $this->parserMock->expects($this->once())
             ->method('parseProductList')
             ->with($products)
-            ->willReturn(['data' => $products['products'], 'meta' => ['total_pages' => 1, 'page' => 1, 'per_page' => 10]]);
+            ->willReturn([
+                'data' => $products['products'],
+                'meta' => ['total_pages' => 1, 'page' => 1, 'per_page' => 10]
+            ]);
 
-        $response = $this->controller->getProducts(10, 0, 'title', 'asc');
+        $response = $this->controller->getProducts();
         $this->assertArrayHasKey('data', $response);
-        $this->assertCount(1, $response['data']);
+        $this->assertCount(10, $response['data']);  // Expecting 10 products
     }
 
     // test get single product controller method
@@ -65,7 +87,13 @@ class ControllerTest extends TestCase
     public function testSearchProducts()
     {
         $products = [
-            'products' => [['id' => 1, 'title' => 'Product 1', 'price' => 10.99]],
+            'products' => array_map(function ($i) {
+                return [
+                    'id' => $i,
+                    'title' => "Product $i",
+                    'price' => 10.99
+                ];
+            }, range(1, 5)), // mock 5 products
             'totalPages' => 1
         ];
 
@@ -77,10 +105,13 @@ class ControllerTest extends TestCase
         $this->parserMock->expects($this->once())
             ->method('parseProductList')
             ->with($products)
-            ->willReturn(['data' => $products['products'], 'meta' => ['total_pages' => 1, 'page' => 1, 'per_page' => 10]]);
+            ->willReturn([
+                'data' => $products['products'],
+                'meta' => ['total_pages' => 1, 'page' => 1, 'per_page' => 5]
+            ]);
 
         $response = $this->controller->searchProducts('laptop');
         $this->assertArrayHasKey('data', $response);
-        $this->assertCount(1, $response['data']);
+        $this->assertCount(5, $response['data']);
     }
 }

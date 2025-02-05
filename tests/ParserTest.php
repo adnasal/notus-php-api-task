@@ -5,11 +5,12 @@ use App\Parser;
 
 class ParserTest extends TestCase
 {
-    private $parser;
+    private Parser $parser;
 
     // set up parser instance before each test
     protected function setUp(): void
     {
+        error_reporting(E_ALL | E_DEPRECATED);
         $this->parser = new Parser();
     }
 

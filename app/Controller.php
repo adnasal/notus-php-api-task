@@ -4,14 +4,13 @@ namespace App;
 
 class Controller
 {
-    private $provider;
-    private $parser;
+    private Provider $provider;
+    private Parser $parser;
 
-    public function __construct()
+    public function __construct($provider, $parser)
     {
-        // instantiate provider and parser classes
-        $this->provider = new Provider();
-        $this->parser = new Parser();
+        $this->provider = $provider;
+        $this->parser = $parser;
     }
 
     /**
@@ -41,7 +40,7 @@ class Controller
     public function getSingleProduct(int $id): array
     {
         // fetch raw data for a single product
-        $data = $this->provider->getSingleProduct($id);
+        $data = $this->provider->getProductById($id);
 
         // parse and return formatted data
         return $this->parser->parseSingleProduct($data);
@@ -62,5 +61,3 @@ class Controller
         return $this->parser->parseProductList($data, 1, count($data['products']));
     }
 }
-
-?>
